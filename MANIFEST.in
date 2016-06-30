@@ -1,0 +1,7 @@
+include MANIFEST.in
+include MANUAL.txt
+include LICENSE
+recursive-include sgtoolkit *
+recursive-include test_data *
+recursive-include dist *
+

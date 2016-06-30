@@ -1,0 +1,11 @@
+Metadata-Version: 1.1
+Name: sgtoolkit
+Version: 1.0.1
+Summary: Command line utilities for illumina sequences data analysis
+Home-page: https://github.com/hsgweon/sgtoolkit
+Author: Hyun Soon Gweon
+Author-email: soonio@gmail.com
+License: UNKNOWN
+Download-URL: http://github.com/hsgweon/sgtoolkit/blob/master/dist/sgtoolkit-1.0.1.tar.gz
+Description: UNKNOWN
+Platform: UNKNOWN
