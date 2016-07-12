@@ -30,20 +30,10 @@ QIIME = "qiime"
 BIOM = "biom"
 VSEARCH = "vsearch"
 
-#DB_16S_CHIMERA = "/home/hyugwe/shared/db/greengenes/gg_13_5/gg_13_5_otus/rep_set/97_otus.fasta"
-#DB_16S_ASSIGNMENT_REF_FASTA = "/home/hyugwe/shared/db/greengenes/gg_13_5/gg_13_5.fasta"
-#DB_16S_ASSIGNMENT_REF_TAXONOMY = "/home/hyugwe/shared/db/greengenes/gg_13_5/gg_13_5_taxonomy.txt"
-#DB_16S_ALIGNMENT = "/home/hyugwe/shared/db/greengenes/gg_13_5/gg_13_5_otus/rep_set_aligned/85_otus.fasta"
-
-#DB_18S_CHIMERA = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/rep_set_eukaryotes/99/Silva_119_rep_set99_18S.fna"
-#DB_18S_ASSIGNMENT_REF_FASTA = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/rep_set_eukaryotes/99/Silva_119_rep_set99_18S.fna"
-#DB_18S_ASSIGNMENT_REF_TAXONOMY = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/taxonomy_eukaryotes/99/taxonomy_99_7_levels_18S.txt"
-#DB_18S_ALIGNMENT = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/core_alignment/core_Silva119_alignment.fna"
-
-DB_18SPR2_CHIMERA = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/rep_set_eukaryotes/99/Silva_119_rep_set99_18S.fna"
-DB_18SPR2_ASSIGNMENT_REF_FASTA = "/home/hyugwe/shared/db/prr/mothur_qiime_gb203.fasta"
-DB_18SPR2_ASSIGNMENT_REF_TAXONOMY = "/home/hyugwe/shared/db/prr/qiime_gb203_taxo.txt"
-DB_18SPR2_ALIGNMENT = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/core_alignment/core_Silva119_alignment.fna"
+#DB_18SPR2_CHIMERA = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/rep_set_eukaryotes/99/Silva_119_rep_set99_18S.fna"
+#DB_18SPR2_ASSIGNMENT_REF_FASTA = "/home/hyugwe/shared/db/prr/mothur_qiime_gb203.fasta"
+#DB_18SPR2_ASSIGNMENT_REF_TAXONOMY = "/home/hyugwe/shared/db/prr/qiime_gb203_taxo.txt"
+#DB_18SPR2_ALIGNMENT = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/core_alignment/core_Silva119_alignment.fna"
 
 
 VSEARCH_CLUSTER_THRESHOLD = "0.97"
@@ -51,10 +41,8 @@ VSEARCH_CLUSTER_THRESHOLD = "0.97"
 DEREP_DIR = ""
 CLUSTER_DIR = ""
 OTUWITHTAXONOMY_DIR = ""
-REMOVECHIMERA_DIR = ""
-
+#REMOVECHIMERA_DIR = ""
 REMOVEUNMATCHEDSEQUENCES_DIR = ""
-
 REMAPPED_DIR = ""
 UC2OTUTABLE_DIR = ""
 CLASSIFYREPSET_DIR = ""
@@ -146,7 +134,7 @@ def cluster(options):
     else:
         run_cmd(cmd)
 
-
+'''
 def removeChimera(options):
 
     global REMOVECHIMERA_DIR
@@ -157,7 +145,7 @@ def removeChimera(options):
             shutil.rmtree(REMOVECHIMERA_DIR)
         os.mkdir(REMOVECHIMERA_DIR)
 
-    '''
+
     if options.region == "16S":
         DB_CHIMERA = DB_16S_CHIMERA
     elif options.region == "18S":
@@ -169,7 +157,7 @@ def removeChimera(options):
                     "--notrunclabels",
                     "--nonchimeras", REMOVECHIMERA_DIR + "/centroids_chimeraless.fasta",
                     "--chimeras", REMOVECHIMERA_DIR + "/centroids_chimeras.fasta"])
-    '''
+
 
     # de novo
     cmd = " ".join([VSEARCH,
@@ -183,7 +171,7 @@ def removeChimera(options):
         print(Green + cmd + Default)
     else:
         run_cmd(cmd)
-
+'''
 
 def removeUnmatchedSequences(options):
 
@@ -200,11 +188,11 @@ def removeUnmatchedSequences(options):
         DB_REF = "$DB_18S_ASSIGNMENT_REF_FASTA"
 
     cmd = " ".join([VSEARCH,
-                    "--usearch_global", REMOVECHIMERA_DIR + "/centroids_chimeraless.fasta",
+                    "--usearch_global", CLUSTER_DIR + "/centroids.fasta",
                     "--db", DB_REF,
-                    "--id 0.70",
-                    "--matched", REMOVEUNMATCHEDSEQUENCES_DIR +    "/centroids_chimeraless_matched.fasta",
-                    "--notmatched", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_notmatched.fasta",
+                    "--id 0.50",
+                    "--matched", REMOVEUNMATCHEDSEQUENCES_DIR +    "/centroids_matched.fasta",
+                    "--notmatched", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_notmatched.fasta",
                     "--threads", options.threads])
 
     print(Blue + "Removing sequences below a similarity threshold (70%) against known sequences (Greengenes for 16S, Silva for 18S)..." + Default)
@@ -222,8 +210,8 @@ def renameRepset(options):
     print(Blue + "Re-indexing Representative Sequences (OTUs)..." + Default)
     if not options.printonly:
         
-        handle_in = open(REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched.fasta", "rU")
-        handle_out = open(REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched_reindexed.fasta", "w")
+        handle_in = open(REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched.fasta", "rU")
+        handle_out = open(REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched_reindexed.fasta", "w")
         
         counter = 1
         
@@ -238,7 +226,7 @@ def renameRepset(options):
         handle_out.close()
 
     # Copy repseqs to main dir
-    cmd = " ".join(["cp -r", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched_reindexed.fasta", options.outputdir + "/repseqs.fasta"])
+    cmd = " ".join(["cp -r", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched_reindexed.fasta", options.outputdir + "/repseqs.fasta"])
     if options.printonly:
         print(Green + cmd + Default)
     else:
@@ -256,7 +244,7 @@ def mapReadsOntoRepset(options):
 
     cmd = " ".join([VSEARCH, 
                     "--usearch_global", options.inputfasta, 
-                    "--db", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched_reindexed.fasta", 
+                    "--db", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched_reindexed.fasta", 
                     "--id", VSEARCH_CLUSTER_THRESHOLD, 
                     "--uc", REMAPPED_DIR + "/otus.uc",
                     "--threads", options.threads])
@@ -325,7 +313,7 @@ def classifyRepset(options):
 
     # RDP Classifier
     cmd = " ".join(["qiime", "assign_taxonomy.py", 
-                    "-i", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched_reindexed.fasta", 
+                    "-i", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched_reindexed.fasta", 
                     "-r", DB_ASSIGNMENT_REF_FASTA,
                     "-t", DB_ASSIGNMENT_REF_TAXONOMY,
                     "-m", "rdp",
@@ -343,7 +331,7 @@ def classifyRepset(options):
 
     # BLAST
     cmd = " ".join(["qiime", "assign_taxonomy.py",
-                    "-i", REMOVECHIMERA_DIR + "/centroids_chimeraless_reindexed.fasta",
+                    "-i", REMOVECHIMERA_DIR + "/centroids_reindexed.fasta",
                     "-r", DB_ASSIGNMENT_REF_FASTA,
                     "-t", DB_ASSIGNMENT_REF_TAXONOMY,
                     "-m", "blast",
@@ -466,7 +454,7 @@ def build_phylogenetic_tree(options):
 
     # Align
     cmd = " ".join([QIIME, "align_seqs.py",
-                    "-i", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_chimeraless_matched_reindexed.fasta",
+                    "-i", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_matched_reindexed.fasta",
                     "-o", PHYLOGENY_DIR,
                     "-t", DB_ALIGNMENT,
                     "-p", "0.01",
@@ -480,7 +468,7 @@ def build_phylogenetic_tree(options):
         
     # Build a phylogetic tree
     cmd = " ".join([QIIME, "make_phylogeny.py",
-                    "-i", PHYLOGENY_DIR + "/centroids_chimeraless_matched_reindexed_aligned.fasta",
+                    "-i", PHYLOGENY_DIR + "/centroids_matched_reindexed_aligned.fasta",
                     "-o", PHYLOGENY_DIR + "/repseqs.tre"])
     
     print(Blue + "Building a phylogenetic tree..." + Default)
@@ -506,7 +494,6 @@ def removeIntermediateFiles(options):
             print(Blue + "Removing intermediate files..." + Default)
             shutil.rmtree(DEREP_DIR)
             shutil.rmtree(CLUSTER_DIR)
-            shutil.rmtree(REMOVECHIMERA_DIR)
             shutil.rmtree(REMOVEUNMATCHEDSEQUENCES_DIR)
             shutil.rmtree(REMAPPED_DIR)
             shutil.rmtree(UC2OTUTABLE_DIR)
@@ -576,14 +563,13 @@ if __name__ == '__main__':
 
     DEREP_DIR = options.outputdir + "/1_dereplicated"
     CLUSTER_DIR = options.outputdir + "/2_repset_preliminary"
-    REMOVECHIMERA_DIR = options.outputdir + "/3_repset"
-    REMOVEUNMATCHEDSEQUENCES_DIR = options.outputdir + "/4_remove_unmatched_sequences"
-    REMAPPED_DIR = options.outputdir + "/5_remapped"
-    UC2OTUTABLE_DIR = options.outputdir + "/6_otu_table_preliminary"
-    CLASSIFYREPSET_DIR = options.outputdir + "/7_taxonomic_assignment"
-    OTUWITHTAXONOMY_DIR = options.outputdir + "/8_otu_table"
-    PHYLOGENY_DIR = options.outputdir + "/9_phylogenetic_tree"
-
+#    REMOVECHIMERA_DIR = options.outputdir + "/3_repset"
+    REMOVEUNMATCHEDSEQUENCES_DIR = options.outputdir + "/3_remove_unmatched_sequences"
+    REMAPPED_DIR = options.outputdir + "/4_remapped"
+    UC2OTUTABLE_DIR = options.outputdir + "/5_otu_table_preliminary"
+    CLASSIFYREPSET_DIR = options.outputdir + "/6_taxonomic_assignment"
+    OTUWITHTAXONOMY_DIR = options.outputdir + "/7_otu_table"
+    PHYLOGENY_DIR = options.outputdir + "/8_phylogenetic_tree"
 
     if not options.printonly:
         if os.path.exists(options.outputdir):
@@ -597,7 +583,7 @@ if __name__ == '__main__':
     getsamplelistfromfasta(options)
     derep(options)
     cluster(options)
-    removeChimera(options)
+#    removeChimera(options)
     removeUnmatchedSequences(options)
     renameRepset(options)
     mapReadsOntoRepset(options)
@@ -612,7 +598,7 @@ if __name__ == '__main__':
                      _output_otu_biom = "otu_table.biom", 
                      _output_otu_tabular = "otu_table.txt", 
                      _tax_assignments_dir = CLASSIFYREPSET_DIR, 
-                     _tax_assignments = "centroids_chimeraless_matched_reindexed_tax_assignments.txt", 
+                     _tax_assignments = "centroids_matched_reindexed_tax_assignments.txt", 
                      _printonly = options.printonly)
 
     '''
@@ -623,7 +609,7 @@ if __name__ == '__main__':
                      _output_otu_biom = "otu_table.biom",
                      _output_otu_tabular = "otu_table.txt",
                      _tax_assignments_dir = CLASSIFYREPSET_DIR + "_blast",
-                     _tax_assignments = "centroids_chimeraless_reindexed_tax_assignments.txt",
+                     _tax_assignments = "centroids_reindexed_tax_assignments.txt",
                      _printonly = options.printonly)
     '''
 
