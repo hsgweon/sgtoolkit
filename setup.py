@@ -3,7 +3,7 @@
 import os
 from distutils.core import setup
 
-__version__ = os.environ.get("VERSION", "1.0.1")
+__version__ = os.environ.get("VERSION", "1.0.2")
 
 setup(name ='sgtoolkit',
       version = __version__,
