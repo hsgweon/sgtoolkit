@@ -29,19 +29,11 @@ Default = '\033[0m'
 QIIME = "qiime"
 BIOM = "biom"
 VSEARCH = "vsearch"
-
-#DB_18SPR2_CHIMERA = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/rep_set_eukaryotes/99/Silva_119_rep_set99_18S.fna"
-#DB_18SPR2_ASSIGNMENT_REF_FASTA = "/home/hyugwe/shared/db/prr/mothur_qiime_gb203.fasta"
-#DB_18SPR2_ASSIGNMENT_REF_TAXONOMY = "/home/hyugwe/shared/db/prr/qiime_gb203_taxo.txt"
-#DB_18SPR2_ALIGNMENT = "/home/hyugwe/shared/db/silva/SILVA_119/Silva119_release/core_alignment/core_Silva119_alignment.fna"
-
-
 VSEARCH_CLUSTER_THRESHOLD = "0.97"
 
 DEREP_DIR = ""
 CLUSTER_DIR = ""
 OTUWITHTAXONOMY_DIR = ""
-#REMOVECHIMERA_DIR = ""
 REMOVEUNMATCHEDSEQUENCES_DIR = ""
 REMAPPED_DIR = ""
 UC2OTUTABLE_DIR = ""
@@ -134,44 +126,40 @@ def cluster(options):
     else:
         run_cmd(cmd)
 
-'''
+
 def removeChimera(options):
 
-    global REMOVECHIMERA_DIR
     global CLUSTER_DIR
 
-    if not options.printonly:
-        if os.path.exists(REMOVECHIMERA_DIR):
-            shutil.rmtree(REMOVECHIMERA_DIR)
-        os.mkdir(REMOVECHIMERA_DIR)
-
-
     if options.region == "16S":
-        DB_CHIMERA = DB_16S_CHIMERA
+        DB_CHIMERA = "$DB_16S_CHIMERA"
     elif options.region == "18S":
-        DB_CHIMERA = DB_18S_CHIMERA
+        DB_CHIMERA = "$DB_18S_CHIMERA"
 
     cmd = " ".join([VSEARCH,
                     "--uchime_ref", CLUSTER_DIR + "/centroids.fasta",
                     "--db", DB_CHIMERA,
                     "--notrunclabels",
-                    "--nonchimeras", REMOVECHIMERA_DIR + "/centroids_chimeraless.fasta",
-                    "--chimeras", REMOVECHIMERA_DIR + "/centroids_chimeras.fasta"])
-
+                    "--nonchimeras", CLUSTER_DIR + "/centroids_chimeraless.fasta",
+                    "--borderline", CLUSTER_DIR + "/centroids_borderline_chimeras.fasta",
+                    "--chimeras", CLUSTER_DIR + "/centroids_chimeras.fasta"])
 
     # de novo
+    '''
     cmd = " ".join([VSEARCH,
                     "--uchime_denovo", CLUSTER_DIR + "/centroids.fasta",
                     "--notrunclabels",
-                    "--nonchimeras", REMOVECHIMERA_DIR + "/centroids_chimeraless.fasta",
-                    "--chimeras", REMOVECHIMERA_DIR + "/centroids_chimeras.fasta"])
+                    "--nonchimeras", CLUSTER_DIR + "/centroids_chimeraless.fasta",
+                    "--borderline", CLUSTER_DIR + "/centroids_borderline_chimeras.fasta",
+                    "--chimeras", CLUSTER_DIR + "/centroids_chimeras.fasta"])
+    '''
 
     print(Blue + "Detecting and removing chimerass..." + Default)
     if options.printonly:
         print(Green + cmd + Default)
     else:
         run_cmd(cmd)
-'''
+
 
 def removeUnmatchedSequences(options):
 
@@ -188,14 +176,15 @@ def removeUnmatchedSequences(options):
         DB_REF = "$DB_18S_ASSIGNMENT_REF_FASTA"
 
     cmd = " ".join([VSEARCH,
-                    "--usearch_global", CLUSTER_DIR + "/centroids.fasta",
+#                    "--usearch_global", CLUSTER_DIR + "/centroids.fasta",
+                    "--usearch_global", CLUSTER_DIR + "/centroids_chimeraless.fasta",
                     "--db", DB_REF,
                     "--id 0.50",
                     "--matched", REMOVEUNMATCHEDSEQUENCES_DIR +    "/centroids_matched.fasta",
                     "--notmatched", REMOVEUNMATCHEDSEQUENCES_DIR + "/centroids_notmatched.fasta",
                     "--threads", options.threads])
 
-    print(Blue + "Removing sequences below a similarity threshold (70%) against known sequences (Greengenes for 16S, Silva for 18S)..." + Default)
+    print(Blue + "Removing sequences below a similarity threshold (50%) against known sequences (Greengenes for 16S, Silva for 18S)..." + Default)
     if options.printonly:
         print(Green + cmd + Default)
     else:
@@ -583,7 +572,7 @@ if __name__ == '__main__':
     getsamplelistfromfasta(options)
     derep(options)
     cluster(options)
-#    removeChimera(options)
+    removeChimera(options)
     removeUnmatchedSequences(options)
     renameRepset(options)
     mapReadsOntoRepset(options)
